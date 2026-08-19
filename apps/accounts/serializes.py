@@ -48,19 +48,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'avatar', 'bio', 'created_at', 'updated_at', 'posts_count', 'comments_count')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'avatar', 'bio', 'created_at', 'updated_at', 'posts_count', 'comments_count', 'full_name')
         read_only_fields = ('id', 'created_at', 'updated_at')
     
     def get_posts_count(self, obj):
-        return obj.posts.count()
+        try:
+            return obj.posts.count()
+        except AttributeError:
+            return 0
     
     def get_comments_count(self, obj):
-        return obj.comments.count()
+        try:
+            return obj.comments.count()
+        except AttributeError:
+            return 0
     
-class UserUpdateSerializer(serializers.ModelSerializer):
-    
-    
-    
+class UserUpdateSerializer(serializers.ModelSerializer):    
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'avatar', 'bio')
