@@ -4,11 +4,11 @@ from .models import Category, Post
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'post_count', 'created_at')
+    list_display = ('name', 'slug', 'created_at',)
     list_filter =('created_at',)
-    search_fields = ('name', 'description')
+    search_fields = ('name', 'description',)
     prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ('created_at')
+    readonly_fields = ('created_at',)
     
     def posts_count(self, obj):
         return obj.posts.count()
@@ -16,11 +16,11 @@ class CategoryAdmin(admin.ModelAdmin):
     
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'category', 'status', 'view_count', 'comments_count','created_at')
-    list_filter = ('status', 'category', 'author', 'created_at', 'updated_at')
-    search_fields = ('title', 'content', 'author__username')
+    list_display = ('title', 'author', 'category', 'status', 'comments_count','created_at',)
+    list_filter = ('status', 'category', 'author', 'created_at', 'updated_at',)
+    search_fields = ('title', 'content', 'author__username',)
     prepopulated_fields = {'slug': ('title',)}
-    readonly_fields = ('view_count', 'created_at', 'updated_at')
+    readonly_fields = ( 'created_at', 'updated_at',)
     raw_id_fields = ('author', )
     
     fieldsets = (
@@ -41,4 +41,4 @@ class PostAdmin(admin.ModelAdmin):
     comments_count.short_description = 'Comments'
     
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('author', 'category')
+        return super().get_queryset(request).select_related('author', 'category',)

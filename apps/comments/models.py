@@ -17,8 +17,8 @@ class Comment(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['post', '-created_at']),
-            models.Index(fileds=['author', '-created_at']),
-            models.Index(fileds=['parent', '-created_at']),
+            models.Index(fields=['author', '-created_at']),
+            models.Index(fields=['parent', '-created_at']),
         ]
     
     def __str__(self):
