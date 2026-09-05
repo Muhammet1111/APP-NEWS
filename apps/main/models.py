@@ -22,8 +22,39 @@ class Category(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+        
+class PostManager(models.Manager):
+    def published(self):
+        return self.filter(status='published')
+    
+    def pinned_posts(self):
+        return self.filter(
+            pin_info__is_null=False, 
+            pin_info__user__subscription__status='active', 
+            pin_info__user__subscription__end_date__gte=models.functions.Now(), 
+            status='published'
+        ).select_related(
+            'pin_info', 
+            'pin_info__user', 
+            'pin_info__user__subscription'
+        ).order_by('-pin_info__pinned_at')
+        
+    def regular_posts(self):
+        return self.filter(
+            pin_info__is_null=True, 
+            status='published'
+        ).order_by('-created_at')
+    
+    def with_subscription_info(self):
+        return self.select_related(
+            'author', 
+            'author__subscription', 
+            'category'
+        ).prefetch_related('pin_info')
 
 class Post(models.Model):
+    
+    '''Model posta bloga s podderzhkoy zakrepleniya'''
 
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -41,6 +72,9 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     views_count = models.PositiveIntegerField(default=0)
 
+    objects = PostManager()
+    
+    
     class Meta:
         db_table = 'posts'
         verbose_name_plural = 'Posts'
@@ -68,6 +102,47 @@ class Post(models.Model):
     def comments_count(self):
         return self.comments.filter(is_active=True).count()
     
+    @property
+    def is_pinned(self):
+        return hasattr(self, 'pin_info') and self.pin_info is not None
+    
+    @property
+    def can_be_pinned_by_user(self):
+        if self.status != 'published':
+            return False
+        return True
+    
+    def can_be_pinned_by(self, user):
+        
+        if not user or not user.is_authenticated:
+            return False
+        
+        if self.author != user:
+            return False
+        
+        if self.status != 'published':
+            return False
+        
+        if not hasattr(user, 'subscription') or not user.subscription.is_active:
+            return False
+        
+        return True
+
     def increment_views(self):
         self.views_count += 1
         self.save(update_fields=['views_count'])
+
+    def get_pinned_info(self):
+        if self.is_pinned:
+            return {
+                'is_pinned': True,
+                'pinned_at': self.pin_info.pinned_at,
+                'pinned_by':{
+                    'id': self.pin_info.user.id,
+                    'username': self.pin_info.user.username,
+                    'has_active_subscription': self.pin_info.user.subscription.is_active
+                }
+            }
+        return {
+            'is_pinned': False,
+        }
