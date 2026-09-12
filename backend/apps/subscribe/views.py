@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from .models import SubscriptionPlan, Subscription, PinnedPost, SubscriptionHistory
 from .serializers import SubscriptionSerializer, SubscriptionPlanSerializer, SubscriptionCreateSerializer, PinnedPostSerializer, SubscriptionHistorySerializer, UserSubscriptionStatusSerializer, PinPostSerializer, UnpinPostSerializer
-from apps.main.models import Post
+from backend.apps.main.models import Post
 
 class SubscriptionPlanListView(generics.ListAPIView):
     '''spisok tarifnyh planow'''

@@ -24,7 +24,7 @@ from .serializers import (
 )
 
 from .services import StripeService, PaymentService, WebhookService
-from apps.subscribe.models import SubscriptionPlan
+from backend.apps.subscribe.models import SubscriptionPlan
 
 class PaymentListView(generics.ListAPIView):
     serializer_class = PaymentSerializer

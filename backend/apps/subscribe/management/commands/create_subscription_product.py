@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from apps.subscribe.models import SubscriptionPlan
+from backend.apps.subscribe.models import SubscriptionPlan
 
 class Command(BaseCommand):
     help = 'Create default subscription plans'

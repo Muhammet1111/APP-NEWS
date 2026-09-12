@@ -187,7 +187,7 @@ class PinPostSerializer(serializers.Serializer):
     post_id = serializers.IntegerField()
     
     def validate(self, value):
-        from apps.main.models import Post
+        from backend.apps.main.models import Post
         
         try:
             post = Post.objects.get(id=value, status='published')
