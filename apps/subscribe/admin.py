@@ -31,9 +31,9 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         }),
     )
     
-    def subscriptions_count(self, obj):
+    def subscription_count(self, obj):
         return obj.subscriptions.count()
-    subscriptions_count.short_description = 'Subscriptions'
+    subscription_count.short_description = 'Subscriptions'
     
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('subscriptions')
