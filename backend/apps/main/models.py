@@ -29,7 +29,7 @@ class PostManager(models.Manager):
     
     def pinned_posts(self):
         return self.filter(
-            pin_info__is_null=False, 
+            pin_info__isnull=False, 
             pin_info__user__subscription__status='active', 
             pin_info__user__subscription__end_date__gte=models.functions.Now(), 
             status='published'
@@ -41,9 +41,31 @@ class PostManager(models.Manager):
         
     def regular_posts(self):
         return self.filter(
-            pin_info__is_null=True, 
+            pin_info__isnull=True, 
             status='published'
         ).order_by('-created_at')
+        
+    def get_posts_for_feed(self):
+        return self.filter(
+            status='published'
+        ).select_related(
+            'pin_info',
+            'pin_info__user',
+            'pin_info__user__subscription'
+        ).annotate(
+            pinned_order=models.Case(
+                models.When(
+                    pin_info__isnull=False,
+                    then=models.Value(0)
+                ),
+            default=models.Value(1),
+            output_field=models.IntegerField()
+            )
+        ).order_by(
+            'pinned_order',
+            '-pin_info__pinned_at',
+            '-created_at'
+        )
     
     def with_subscription_info(self):
         return self.select_related(

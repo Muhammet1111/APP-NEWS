@@ -24,7 +24,7 @@ from .serializers import (
 )
 
 from .services import StripeService, PaymentService, WebhookService
-from backend.apps.subscribe.models import SubscriptionPlan
+from apps.subscribe.models import SubscriptionPlan
 
 class PaymentListView(generics.ListAPIView):
     serializer_class = PaymentSerializer
@@ -48,31 +48,31 @@ class PaymentDetailView(generics.RetrieveAPIView):
 @permission_classes([permissions.IsAuthenticated])
 def create_checkout_session(request):
     serializer = PaymentCreateSerializer(data=request.data, context={'request': request})
-    
+
     if serializer.is_valid():
         try:
             with transaction.atomic():
                 plan_id = serializer.validated_data['subscription_plan_id']
                 plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
-                
+
                 payment, susbscription = PaymentService.create_subscription_payment(
                     request.user, plan
                 )
-                
+
                 success_url = serializer.validated_data.get(
                     'success_url',
                     f'{settings.FRONTEND_URL}/payment/success?session_id={{CHECKOUT_SESSION_ID}}'
                 )
-                
+
                 cancel_url = serializer.validated_data.get(
                     'cancel_url',
                     f'{settings.FRONTEND_URL}/payment/cancel'
                 )
-                
+
                 session_data = StripeService.create_checkout_session(
                     payment, success_url, cancel_url
                 )
-                
+
                 if session_data:
                     response_serializer = StripeCheckoutSessionSerializer(session_data)
                     return Response(response_serializer.data, status=status.HTTP_201_CREATED)
@@ -80,12 +80,13 @@ def create_checkout_session(request):
                     return Response({
                         'error': 'Failed to create checkout session'
                     }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         except Exception as e:
+            print("CHECKOUT EXCEPTION:", repr(e))
             return Response({
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+    print("SERIALIZER ERRORS:", serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
@@ -208,36 +209,36 @@ class RefundDetailView(generics.RetrieveAPIView):
 def create_refund(request, payment_id):
     try:
         payment = get_object_or_404(Payment, id=payment_id)
-        
+
         if not payment.can_be_refunded:
             return Response({
                 'error': 'This payment cannot be refunded'
             }, status=status.HTTP_400_BAD_REQUEST)
-            
+
         serializer = RefundCreateSerializer(
             data=request.data,
             context={'payment_id': payment_id}
         )
-        
+
         if serializer.is_valid():
             with transaction.atomic():
                 refund = serializer.save(
                     payment=payment,
                     created_by=request.user
                 )
-                
+
                 success = StripeService.refund_payment(
                     payment,
                     refund.amount,
                     refund.reason
                 )
-                
+
                 if success:
                     refund.process_refund()
-                    
+
                     if refund.amount == payment.amount and payment.subscription:
                         PaymentService.cancel_subscription(payment.subscription)
-                        
+
                     response_serializer = RefundSerializer(refund)
                     return Response(response_serializer.data, status=status.HTTP_201_CREATED)
                 else:
@@ -246,9 +247,9 @@ def create_refund(request, payment_id):
                     return Response({
                         'error': 'Failed to process refund'
                     }, status=status.HTTP_400_BAD_REQUEST)
-        
+        print("SERIALIZER ERRORS:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     except Payment.DoesNotExist:
         return Response({
             'error': 'Payment not found'
@@ -259,19 +260,20 @@ def create_refund(request, payment_id):
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-    
+
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
-    
+        event = event.to_dict()
+
     except ValueError:
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError:
         return HttpResponse(status=400)
-    
+
     success = WebhookService.process_stripe_webhook(event)
-    
+
     if success:
         return HttpResponse(status=200)
     else:
@@ -328,7 +330,7 @@ def payment_analytics(request):
             },
         }
     )
-    
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def user_payment_history(request):
@@ -341,7 +343,7 @@ def user_payment_history(request):
         'count': payments.count(),
         'results': serializer.data
     })
-    
+
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def retry_payment(request, payment_id):
@@ -381,5 +383,3 @@ def retry_payment(request, payment_id):
         return Response({
             'error': 'Payment not found or cannot be retried'
         }, status=status.HTTP_404_NOT_FOUND)
-            
-        

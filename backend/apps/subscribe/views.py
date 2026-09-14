@@ -9,20 +9,20 @@ from django.utils import timezone
 
 from .models import SubscriptionPlan, Subscription, PinnedPost, SubscriptionHistory
 from .serializers import SubscriptionSerializer, SubscriptionPlanSerializer, SubscriptionCreateSerializer, PinnedPostSerializer, SubscriptionHistorySerializer, UserSubscriptionStatusSerializer, PinPostSerializer, UnpinPostSerializer
-from backend.apps.main.models import Post
+from apps.main.models import Post
 
 class SubscriptionPlanListView(generics.ListAPIView):
     '''spisok tarifnyh planow'''
     queryset = SubscriptionPlan.objects.filter(is_active=True)
     serializer_class = SubscriptionPlanSerializer
     permission_classes = [permissions.AllowAny]
-    
+
 class SubscriptionPlanDetailView(generics.RetrieveAPIView):
     '''detalnaya informasiya'''
     queryset = SubscriptionPlan.objects.filter(is_active = True)
     serializer_class = SubscriptionPlanSerializer
     permission_classes = [permissions.AllowAny]
-    
+
 class UserSubscriptionView(generics.RetrieveAPIView):
     '''info o podpiske usera'''
     serializer_class = SubscriptionSerializer
@@ -45,7 +45,7 @@ class UserSubscriptionView(generics.RetrieveAPIView):
             return Response({
                 'detail': 'No subscription found'
             }, status=status.HTTP_404_NOT_FOUND)
-    
+
 class SubscriptionHistoryView(generics.ListAPIView):
     '''istoriya izmeneniy podpiski'''
     serializer_class = SubscriptionHistorySerializer
@@ -58,7 +58,7 @@ class SubscriptionHistoryView(generics.ListAPIView):
             return subscription.history.all()
         except Subscription.DoesNotExist:
             return SubscriptionHistory.objects.none()
-        
+
 class PinnedPostView(generics.RetrieveUpdateDestroyAPIView):
     '''upravleniye zakrep postom'''
     serializer_class = PinnedPostSerializer
@@ -101,7 +101,7 @@ class PinnedPostView(generics.RetrieveUpdateDestroyAPIView):
             return Response({
                 'detail': 'No pinned posts'
             }, status=status.HTTP_404_NOT_FOUND)
-            
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def subscription_status(request):

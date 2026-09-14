@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Comment
-from backend.apps.main.models import Post
+from apps.main.models import Post
 
 class CommentSerializer(serializers.ModelSerializer):
     author_info = serializers.SerializerMethodField()
@@ -31,7 +31,7 @@ class CommentSerializer(serializers.ModelSerializer):
             'fullname': obj.author.full_name,
             'avatar': obj.author.avatar.url if obj.author.avatar else None,
         }
-        
+
 class CommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -50,12 +50,12 @@ class CommentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['author'] = self.context['request'].user
         return super().create(validated_data)
-    
+
 class CommentUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['content']
-        
+
 class CommentDetailSerializer(CommentSerializer):
     replies = serializers.SerializerMethodField()
     

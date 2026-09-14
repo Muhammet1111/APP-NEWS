@@ -4,15 +4,9 @@ from . import views
 urlpatterns = [
     # Payments
     path("payments/", views.PaymentListView.as_view(), name="payment-list"),
-    path(
-        "payments/<int:pk>/", views.PaymentDetailView.as_view(), name="payment-detail"
-    ),
-    path(
-        "payments/<int:payment_id>/status/", views.payment_status, name="payment-status"
-    ),
-    path(
-        "payments/<int:payment_id>/cancel/", views.cancel_payment, name="cancel-payment"
-    ),
+    path("payments/<int:pk>/", views.PaymentDetailView.as_view(), name="payment-detail"),
+    path("payments/<int:payment_id>/status/", views.payment_status, name="payment-status"),
+    path("payments/<int:payment_id>/cancel/", views.cancel_payment, name="cancel-payment"),
     path("payments/<int:payment_id>/retry/", views.retry_payment, name="retry-payment"),
     path("payments/history/", views.user_payment_history, name="payment-history"),
     # Checkout

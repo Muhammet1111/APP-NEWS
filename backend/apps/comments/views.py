@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from .models import Comment
 from .serializers import CommentSerializer, CommentCreateSerializer, CommentUpdateSerializer, CommentDetailSerializer
 from .permissions import IsAuthorOrReadOnly
-from backend.apps.main.models import Post
+from apps.main.models import Post
 
 class CommentListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -25,7 +25,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return CommentCreateSerializer
         return CommentSerializer
-    
+
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.filter(is_active=True).select_related('author', 'post')
     
@@ -40,7 +40,7 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         instance.is_active = False
         instance.save()
-        
+
 class MyCommentsView(generics.ListAPIView):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -52,7 +52,7 @@ class MyCommentsView(generics.ListAPIView):
     
     def get_queryset(self):
         return Comment.objects.filter(author=self.request.user).select_related('post', 'parent')
-    
+
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def post_comments(request, post_id):

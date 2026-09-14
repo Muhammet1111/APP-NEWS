@@ -6,7 +6,7 @@ import logging
 import stripe
 
 from .models import Payment, PaymentAttempt, WebhookEvent
-from backend.apps.subscribe.models import Subscription, SubscriptionPlan, SubscriptionHistory
+from apps.subscribe.models import Subscription, SubscriptionPlan, SubscriptionHistory
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,13 @@ class StripeService:
                 'payment_id': payment.id
             }
         
+        # except stripe.error.StripeError as e:
+        #     logger.error(f'Error creating checkout session: {e}')
+        #     payment.mark_as_failed(str(e))
+        #     return None
+        
         except stripe.error.StripeError as e:
+            print("STRIPE ERROR:", e)
             logger.error(f'Error creating checkout session: {e}')
             payment.mark_as_failed(str(e))
             return None
@@ -159,7 +165,7 @@ class PaymentService:
             subscription=subscription,
             amount=plan.price,
             currency='USD',
-            decription=f'Subscription to {plan.name}',
+            description=f'Subscription to {plan.name}',
             payment_method='stripe'
         )
 
@@ -235,7 +241,7 @@ class PaymentService:
         except Exception as e:
             logger.error(f"Error cancelling subscription {subscription.id}: {e}")
             return False
-        
+
 class WebhookService:
     @staticmethod
     def process_stripe_webhook(event_data:Dict) -> bool:

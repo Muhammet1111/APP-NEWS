@@ -232,7 +232,7 @@ FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='') 
-STRIPE_wEBHOOK_SECRET = config('STRIPE_wEBHOOK_SECRET', default='') 
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='') 
 
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
